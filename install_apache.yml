@@ -1,0 +1,17 @@
+---
+- name: "Install apache web server"
+  hosts:  all
+  become: true
+  tasks:
+    - name: "Update repository"
+      yum:
+        update_cache: yes
+    - name: "Install apache"
+      yum:
+        name: httpd
+        state:  present
+    - name: "check state service"
+      service:
+        name: httpd
+        state:  restarted
+
