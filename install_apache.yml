@@ -3,15 +3,64 @@
   hosts:  all
   become: true
   tasks:
-    - name: "Update repository"
+    - name: "Update repository RedHat"
       yum:
         update_cache: yes
+      when: ansible_distribution == "RedHat"
     - name: "Install apache"
       yum:
         name: httpd
         state:  present
+      when: ansible_distribution == "RedHat"
     - name: "check state service"
       service:
         name: httpd
         state:  restarted
+      when: ansible_distribution == "RedHat"
 
+    - name: "Installing firewald"
+      yum:
+        name: firewalld
+        state:  present
+    - name: "check firewalld state service"
+      service:
+        name: firewalld
+        state: restarted
+        enabled:  yes
+    - name: "Permite apache port "
+      firewalld:
+        state:  enabled
+        permanent: true
+        port: 80/tcp
+      when: ansible_distribution == "RedHat"
+
+    - name: "Update repository Ubuntu"
+      apt:
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
+    - name: "Install apache"
+      apt:
+        name: apache2
+        state:  present
+      when: ansible_distribution == "Ubuntu"
+    - name: "check state service"
+      service:
+        name: apache2
+        state:  restarted
+      when: ansible_distribution == "Ubuntu"
+    - name: "Installing firewald"
+      apt:
+        name: firewalld
+        state:  present
+    - name: "check firewalld state service"
+      service:
+        name: firewalld
+        state: restarted
+        enabled:  yes
+
+    - name: "Permite apache port "
+      firewalld:
+        state:  enabled
+        permanent: true
+        port: 80/tcp
+      when: ansible_distribution == "Ubuntu"
