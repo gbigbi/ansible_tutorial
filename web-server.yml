@@ -1,0 +1,81 @@
+---
+- name: "Installing web server"
+  hosts: all
+  become: true
+  pre_tasks:
+  - name: "Update RedHat"
+    yum:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "RedHat"
+
+  - name: "Update Ubuntu"
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+- name: "Installing apache web server on centos"
+  hosts: web01
+  gather_facts: no
+  become: true
+  tasks:
+  - name: "installing httpd on centos"
+    yum:
+      name:
+        - httpd
+        - firewalld
+      state: present
+  - name: "Copy default_site.html in .."
+    copy:
+      src: files/default_site.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+  - name: "Check httpd state service"
+    service:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+    with_items:
+      - httpd
+      - firewalld
+  
+  - name: "Allows http port"
+    firewalld:
+      permanent: yes
+      port: 80/tcp
+      state: enabled
+
+- name: "Installing apache web server on ubuntu"
+  hosts: bdd01
+  gather_facts: no
+  become: true
+  tasks:
+  - name: "installing apache2 on ubuntu"
+    apt:
+      name:
+        - apache2
+        - firewalld
+      state: present
+  - name: "Check apache2, firewalld state"
+    service:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+    with_items:
+      - apache2
+      - firewalld
+  - name: "Allow apache ports"
+    firewalld:
+      permanent: yes
+      port: 80/tcp
+      state: enabled
+  - name: "Copy default_site.html in .."
+    copy:
+      src: files/default_site.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
