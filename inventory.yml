@@ -3,7 +3,7 @@ all:
     ansible_connection: ssh
 frontend:
   hosts:
-    web01: 
+    web01:
       ansible_host: 3.101.149.41
   vars:
     ansible_ssh_private_key_file: /home/goshit/.ssh/bluecodekey
@@ -19,6 +19,13 @@ backend:
     ansible_ssh_user: ubuntu
     ansible_python_interpreter: /usr/bin/python3
 
-
-
-
+workstation:
+  children:
+    frontend:
+      hosts:
+        web01:
+          ansible_host: 3.101.149.41
+    backend:
+      hosts:
+        bdd01:
+          ansible_host: 54.219.190.234
