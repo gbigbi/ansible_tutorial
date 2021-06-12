@@ -3,30 +3,23 @@
   hosts:  all
   become: true
   tasks:
-    - name: "Update repository RedHat"
+    - name: "Install apache, php and firewalld"
       yum:
+        name:
+          - httpd
+          - php
+          - firewalld
+        state:  present
         update_cache: yes
       when: ansible_distribution == "RedHat"
-    - name: "Install apache"
-      yum:
-        name: httpd
-        state:  present
-      when: ansible_distribution == "RedHat"
-    - name: "check state service"
+    - name: "check state service httpd, php, firewalld"
       service:
-        name: httpd
-        state:  restarted
-      when: ansible_distribution == "RedHat"
-
-    - name: "Installing firewald"
-      yum:
-        name: firewalld
-        state:  present
-    - name: "check firewalld state service"
-      service:
-        name: firewalld
+        name: "{{ item }}"
         state: restarted
-        enabled:  yes
+      with_items:
+        - httpd
+        - firewalld
+      when: ansible_distribution == "RedHat"
     - name: "Permite apache port "
       firewalld:
         state:  enabled
@@ -34,31 +27,25 @@
         port: 80/tcp
       when: ansible_distribution == "RedHat"
 
-    - name: "Update repository Ubuntu"
+    #----------------Installation in ubuntu----------------------------#
+    - name: "Install apache php and firewalld"
       apt:
-        update_cache: yes
-      when: ansible_distribution == "Ubuntu"
-    - name: "Install apache"
-      apt:
-        name: apache2
+        name:
+          - apache2
+          - php
+          - firewalld
         state:  present
       when: ansible_distribution == "Ubuntu"
     - name: "check state service"
       service:
-        name: apache2
+        name: "{{ item }}"
         state:  restarted
-      when: ansible_distribution == "Ubuntu"
-    - name: "Installing firewald"
-      apt:
-        name: firewalld
-        state:  present
-    - name: "check firewalld state service"
-      service:
-        name: firewalld
-        state: restarted
-        enabled:  yes
-
-    - name: "Permite apache port "
+        enabled: yes
+      with_items:
+          - apache2
+          - firewalld
+  
+    - name: "Permite apache port"
       firewalld:
         state:  enabled
         permanent: true

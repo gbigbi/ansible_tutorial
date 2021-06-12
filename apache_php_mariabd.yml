@@ -1,0 +1,71 @@
+---
+- name: "Updating system"
+  hosts:  all
+  become: true
+  tasks:
+  - name: "Update Centos"
+    yum:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "RedHat"
+  - name: "Update Ubuntu"
+    apt:
+      upgrade:  dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu" 
+
+
+- hosts: frontend
+  become: true
+  vars:
+    mysql_root_password: "Bamba21041989"
+  tasks:
+  - name: "Tasks 2: Installation httpd, php and mariadb-server in RedHat"
+    yum:
+      name:
+      - httpd
+      - php
+      - mariadb-server
+      - python3-PyMySQL
+      - firewalld
+      state: present
+  - name: "Check service state"
+    service:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+    with_items:
+      - httpd
+      - mariadb
+      - firewalld
+  - name: "Allow applocation ports"
+    firewalld:
+      permanent: yes
+      port: 80/tcp
+      state: enabled
+
+- hosts: backend
+  become: true
+  tasks:
+  - name: "Tasks 3: Installation httpd, php and mariadb-server in Ubuntu"
+    apt:
+      name:
+      - apache2
+      - php
+      - mariadb-server
+      - firewalld
+      state: present  
+  - name: "Check service state"
+    service:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+    with_items:
+      - apache2
+      - mariadb
+      - firewalld
+  - name: "Allow applocation ports"
+    firewalld:
+      permanent: yes
+      port: 80/tcp
+      state: enabled
