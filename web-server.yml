@@ -8,15 +8,17 @@
       update_only: yes
       update_cache: yes
     when: ansible_distribution == "RedHat"
+    changed_when: false
 
   - name: "Update Ubuntu"
     apt:
       upgrade: dist
       update_cache: yes
     when: ansible_distribution == "Ubuntu"
+    changed_when: false
 
 
-
+#-------------Installation of apache web server on CentOS------------------#
 - name: "Installing apache web server on centos"
   hosts: web01
   gather_facts: no
@@ -28,6 +30,7 @@
         - httpd
         - firewalld
       state: present
+    changed_when: false
   - name: "Copy default_site.html in .."
     copy:
       src: files/default_site.html
@@ -35,6 +38,7 @@
       owner: root
       group: root
       mode: 0644
+    changed_when: false
   - name: "Check httpd state service"
     service:
       name: "{{ item }}"
@@ -43,14 +47,15 @@
     with_items:
       - httpd
       - firewalld
+    changed_when: false
   - name: "Allows http port"
     firewalld:
       permanent: yes
       port: 80/tcp
       state: enabled
+    changed_when: false
 
-
-
+#-------------Installation of apache web server on Ubuntu------------------#
 - name: "Installing apache web server on ubuntu"
   hosts: bdd01
   gather_facts: no
@@ -62,6 +67,7 @@
         - apache2
         - firewalld
       state: present
+    changed_when: false
   - name: "Copy default_site.html in .."
     copy:
       src: files/default_site.html
@@ -69,6 +75,7 @@
       owner: root
       group: root
       mode: 0644
+    changed_when: false
   - name: "Check apache2, firewalld state"
     service:
       name: "{{ item }}"
@@ -77,12 +84,14 @@
     with_items:
       - apache2
       - firewalld
+    changed_when: false
   - name: "Allow apache ports"
     firewalld:
       permanent: yes
       port: 80/tcp
       state: enabled
-
+    changed_when: false
+#--------------------Installing package on CentOS and Ubuntu------------------#
 - name: "Using package modules to install unzip"
   hosts: workstation
   become: true
@@ -114,7 +123,6 @@
       state: restarted
     when: ansible_distribution == "RedHat"
 
-
   - name: "Change default email to owner email on Ubuntu"
     lineinfile:
       path: /etc/apache2/sites-enabled/000-default.conf
@@ -127,3 +135,25 @@
       name: apache2
       state: restarted
     when: ansible_distribution == "Ubuntu"
+
+#----------------------------Create user ----------------------------#
+  - name: "Create user on system"
+    user:
+      name: gbiliza
+      comment: "Houlouwolo Pierre"
+      shell: /bin/bash
+      groups: root
+      append: yes
+#-------------------Add users in sudoers group----------------------#
+  - name: "Ajout de l'utilisateur dans le group sudoers"
+    copy:
+      src: sudoer_gbiliza
+      dest: /etc/sudoers.d/gbiliza
+      owner: root
+      group: root
+#---------------------Add user ssh key ----------------------------#
+  - name: "Add ssh key for user gbigbi"
+    authorized_key:
+      user: gbiliza
+      state: present
+      key: "{{ lookup('file', '/home/goshit/.ssh/gitlabkey.pub') }}"
