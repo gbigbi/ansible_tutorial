@@ -1,0 +1,93 @@
+#---------------------Installation httpd on RedHat----------------------#
+- name: "Install httpd on RedHat"
+  yum:
+    name:
+      - httpd
+      - firewalld
+    state: present
+  changed_when: false
+  when: ansible_distribution == "RedHat"
+
+
+- name: "Check httpd, firewalld service state on RedHat"
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - httpd
+    - firewalld
+  changed_when: false
+  when: ansible_distribution == "RedHat"
+
+- name: "Allow httpd port"
+  firewalld:
+    permanent: yes
+    port: 80/tcp
+    state: enabled
+
+
+#-----------------Installation apache2 on Ubuntu ------------------------#
+- name: "Install apache on Ubuntu"
+  apt:
+    name:
+      - apache2
+      - libapache2-mod-php
+      - firewalld
+  changed_when: false
+  when: ansible_distribution == "Ubuntu"
+- name: "Check httpd, firewalld service state on Ubuntu"
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - apache2
+    - firewalld
+  changed_when: false
+  when: ansible_distribution == "Ubuntu"
+
+- name: "Allow apache2 port"
+  firewalld:
+    permanent: yes
+    port: 80/tcp
+    state: enabled
+
+
+- name: change e-mail address for admin
+  tags: apache,centos,httpd
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^ServerAdmin'
+    line: ServerAdmin gbiliza64@gmail.com
+  when: ansible_distribution == "RedHat"
+  register: httpd
+- name: restart httpd (RedHat)
+  tags: apache,centos,httpd
+  service:
+    name: httpd
+    state: restarted
+  when: ansible_distribution == "RedHat"
+
+- name: change e-mail address for admin
+  tags: apache,ubuntu
+  lineinfile:
+    path: /etc/apache2/sites-enabled/000-default.conf
+    regexp: '^ServerAdmin'
+    line: ServerAdmin gbiliza64@gmail.com
+  when: ansible_distribution == "Ubuntu"
+  register: apache2
+- name: restart apache2 (Ubuntu)
+  tags: apache2,ubuntu
+  service:
+    name: apache
+    state: restarted
+  when: ansible_distribution == "Ubuntu"
+#---------------Copy html file on site ------------------------------------#
+- name: "Copy html file on site"
+  copy:
+    src: /home/goshit/Bureau/ANSIBLE/projet03/git_repo/ansible_tutorial/files
+    dest: /var/www/html/index.html
+    owner: root
+    group: root
+    mode: 0644

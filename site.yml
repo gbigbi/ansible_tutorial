@@ -1,0 +1,42 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+  - name: "Update CentOS server"
+    yum:
+      update_only: yes
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "RedHat"
+  - name: "Update Ubuntu server"
+    apt:
+      upgrade: dist
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "Ubuntu"
+
+#-------------------Call role in main file------------------------#
+- hosts: all
+  become: true
+  roles:
+    - base
+
+- hosts: workstations
+  become: true
+  roles:
+    - workstations
+
+- hosts: web_servers
+  become: true
+  roles:
+    - web_servers
+
+- hosts: db_servers
+  become: true
+  roles:
+    - db_servers
+
+- hosts: workstations
+  become: true
+  roles:
+    - file_servers

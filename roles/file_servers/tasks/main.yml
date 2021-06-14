@@ -1,0 +1,4 @@
+- name: "Install Samba on RedHat and Ubuntu"
+  package:
+    name: Samba
+    state: present

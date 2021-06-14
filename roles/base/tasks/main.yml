@@ -1,0 +1,5 @@
+- name: "Add ssh key for gbiliza"
+  authorized_key:
+    user: gbiliza
+    state: present
+    key: "{{ lookup('file','/home/goshit/.ssh/gitlabkey.pub') }}"
